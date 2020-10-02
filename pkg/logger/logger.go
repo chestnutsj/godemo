@@ -1,46 +1,37 @@
 package logger
 
 import (
-	"demo/pkg/tools"
 	"fmt"
+	"github.com/chestnutsj/godemo/pkg/config"
+	"github.com/chestnutsj/godemo/pkg/tools"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"log"
 	"os"
 	"time"
 )
 
-// Logger  is a globle
-var Logger *zap.Logger
-
-type LogConfig struct {
-	Dir string `yaml:"dir" default:"log" `
-	Level  zapcore.Level `yaml:"level" default:"debug"`
-	MaxFile int  `default:"7"`
-	MaxAge int `default:"1"`
-}
-
-
-func InitLogger(cfg  LogConfig)  {
+func InitLogger(cfg config.LogConfig) {
 	app := tools.AppName()
-	file:=  fmt.Sprintf("%s/%s.log",cfg.Dir , app )//filePath
+	file := fmt.Sprintf("%s/%s.log", cfg.Dir, app) //filePath
 	hook := lumberjack.Logger{
-		Filename: file,
+		Filename:   file,
 		MaxBackups: cfg.MaxFile,
-		MaxAge:     cfg.MaxAge,     //days
-		Compress:   true, // disabled by default
+		MaxAge:     cfg.MaxAge, //days
+		Compress:   true,       // disabled by default
 	}
 
 	encoderConfig := zapcore.EncoderConfig{
-		TimeKey:        "ts",
-		LevelKey:       "l",
-		NameKey:        "logger",
-		CallerKey:      "file",
-		MessageKey:     "m",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,  // 小写编码器
-		EncodeTime:     func (t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		TimeKey:       "ts",
+		LevelKey:      "level",
+		NameKey:       "logger",
+		CallerKey:     "file",
+		MessageKey:    "msg",
+		StacktraceKey: "stacktrace",
+		LineEnding:    zapcore.DefaultLineEnding,
+		EncodeLevel:   zapcore.LowercaseLevelEncoder, // 小写编码器
+		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			type appendTimeEncoder interface {
 				AppendTimeLayout(time.Time, string)
 			}
@@ -54,46 +45,35 @@ func InitLogger(cfg  LogConfig)  {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 		EncodeName:     zapcore.FullNameEncoder,
 	}
+
 	level := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >=  cfg.Level
+		return lvl >= cfg.Level
+	})
+	consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+
+	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return cfg.Std
 	})
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderConfig),
-		//zapcore.AddSync(&hook), // 编码器配置
-		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // 打印到控制台和文件
-		level)
+	core := zapcore.NewTee(
+		zapcore.NewCore(
+			zapcore.NewJSONEncoder(encoderConfig),
+			zapcore.NewMultiWriteSyncer(zapcore.AddSync(&hook)), // 打印到控制台和文件
+			level),
 
-	Logger = zap.New(core, zap.AddCaller())
+		zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), lowPriority),
+	)
+	Logger := zap.New(core, zap.AddCaller())
 
 	//Logger, _ = zap.NewProduction()
 
 	defer func() {
 		_ = Logger.Sync()
 	}()
+
+	zap.ReplaceGlobals(Logger)
+	zap.RedirectStdLog(Logger)
 	Logger.Info("logger start")
-
-}
-
-func Info(msg string, fields ...zap.Field)  {
-	if Logger != nil {
-		Logger.Info(msg,fields...)
-	}
-}
-
-func Debug(msg string, fields ...zap.Field)  {
-	if Logger != nil {
-		Logger.Debug(msg,fields...)
-	}
-}
-
-func Warn(msg string, fields ...zap.Field)  {
-	if Logger != nil {
-		Logger.Warn(msg,fields...)
-	}
-}
-func Error(msg string, fields ...zap.Field)  {
-	if Logger != nil {
-		Logger.Error(msg,fields...)
-	}
+	zap.L().Info("global log start")
+	log.Println("redirected standard library")
 }
