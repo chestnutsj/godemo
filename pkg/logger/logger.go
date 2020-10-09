@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"demo/pkg/tools"
 	"fmt"
+	"github.com/chestnutsj/godemo/pkg/tools"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -14,6 +14,7 @@ import (
 var Logger *zap.Logger
 
 type LogConfig struct {
+	Std bool `yaml:"std" default:"false"`
 	Dir string `yaml:"dir" default:"log" `
 	Level  zapcore.Level `yaml:"level" default:"debug"`
 	MaxFile int  `default:"7"`
@@ -57,12 +58,21 @@ func InitLogger(cfg  LogConfig)  {
 	level := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >=  cfg.Level
 	})
+	var core zapcore.Core
+	if cfg.Std {
+		core = zapcore.NewCore(
+			zapcore.NewJSONEncoder(encoderConfig),
+			//zapcore.AddSync(&hook), // 编码器配置
+			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // 打印到控制台和文件
+			level)
+	} else {
+		core  = zapcore.NewCore(
+			zapcore.NewJSONEncoder(encoderConfig),
+			//zapcore.AddSync(&hook), // 编码器配置
+			zapcore.NewMultiWriteSyncer(zapcore.AddSync(&hook)), // 打印到控制台和文件
+			level)
+	}
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderConfig),
-		//zapcore.AddSync(&hook), // 编码器配置
-		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // 打印到控制台和文件
-		level)
 
 	Logger = zap.New(core, zap.AddCaller())
 
@@ -78,22 +88,36 @@ func InitLogger(cfg  LogConfig)  {
 func Info(msg string, fields ...zap.Field)  {
 	if Logger != nil {
 		Logger.Info(msg,fields...)
+	}else {
+		fmt.Println(msg)
 	}
 }
 
 func Debug(msg string, fields ...zap.Field)  {
 	if Logger != nil {
 		Logger.Debug(msg,fields...)
+	}else {
+		fmt.Println(msg)
 	}
 }
 
 func Warn(msg string, fields ...zap.Field)  {
 	if Logger != nil {
 		Logger.Warn(msg,fields...)
+	}else {
+		fmt.Println(msg)
 	}
 }
 func Error(msg string, fields ...zap.Field)  {
 	if Logger != nil {
 		Logger.Error(msg,fields...)
+	} else {
+		fmt.Println(msg)
+	}
+}
+
+func Sync() {
+	if Logger != nil {
+		_ = Logger.Sync()
 	}
 }

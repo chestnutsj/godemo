@@ -1,4 +1,4 @@
-module demo
+module github.com/chestnutsj/godemo
 
 go 1.12
 
@@ -9,5 +9,5 @@ require (
 	go.uber.org/zap v1.16.0
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gopkg.in/yaml.v2 v2.3.0
 )
