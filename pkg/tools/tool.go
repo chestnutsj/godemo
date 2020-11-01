@@ -7,7 +7,7 @@ import (
 )
 
 func AppName() string {
-	app:=strings.Split(filepath.Base(os.Args[0]),".")
+	app := strings.Split(filepath.Base(os.Args[0]), ".")
 	if len(app) > 0 {
 		return app[0]
 	} else {

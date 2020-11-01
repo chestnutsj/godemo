@@ -1,6 +1,6 @@
 module github.com/chestnutsj/godemo
 
-go 1.12
+go 1.15
 
 require (
 	github.com/jinzhu/configor v1.2.0

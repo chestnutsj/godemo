@@ -14,34 +14,33 @@ import (
 var Logger *zap.Logger
 
 type LogConfig struct {
-	Std bool `yaml:"std" default:"false"`
-	Dir string `yaml:"dir" default:"log" `
-	Level  zapcore.Level `yaml:"level" default:"debug"`
-	MaxFile int  `default:"7"`
-	MaxAge int `default:"1"`
+	Std     bool          `yaml:"std" default:"false"`
+	Dir     string        `yaml:"dir" default:"log" `
+	Level   zapcore.Level `yaml:"level" default:"debug"`
+	MaxFile int           `default:"7"`
+	MaxAge  int           `default:"1"`
 }
 
-
-func InitLogger(cfg  LogConfig)  {
+func InitLogger(cfg LogConfig) {
 	app := tools.AppName()
-	file:=  fmt.Sprintf("%s/%s.log",cfg.Dir , app )//filePath
+	file := fmt.Sprintf("%s/%s.log", cfg.Dir, app) //filePath
 	hook := lumberjack.Logger{
-		Filename: file,
+		Filename:   file,
 		MaxBackups: cfg.MaxFile,
-		MaxAge:     cfg.MaxAge,     //days
-		Compress:   true, // disabled by default
+		MaxAge:     cfg.MaxAge, //days
+		Compress:   true,       // disabled by default
 	}
 
 	encoderConfig := zapcore.EncoderConfig{
-		TimeKey:        "ts",
-		LevelKey:       "l",
-		NameKey:        "logger",
-		CallerKey:      "file",
-		MessageKey:     "m",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,  // 小写编码器
-		EncodeTime:     func (t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		TimeKey:       "ts",
+		LevelKey:      "l",
+		NameKey:       "logger",
+		CallerKey:     "file",
+		MessageKey:    "m",
+		StacktraceKey: "stacktrace",
+		LineEnding:    zapcore.DefaultLineEnding,
+		EncodeLevel:   zapcore.LowercaseLevelEncoder, // 小写编码器
+		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			type appendTimeEncoder interface {
 				AppendTimeLayout(time.Time, string)
 			}
@@ -56,7 +55,7 @@ func InitLogger(cfg  LogConfig)  {
 		EncodeName:     zapcore.FullNameEncoder,
 	}
 	level := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >=  cfg.Level
+		return lvl >= cfg.Level
 	})
 	var core zapcore.Core
 	if cfg.Std {
@@ -66,13 +65,12 @@ func InitLogger(cfg  LogConfig)  {
 			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // 打印到控制台和文件
 			level)
 	} else {
-		core  = zapcore.NewCore(
+		core = zapcore.NewCore(
 			zapcore.NewJSONEncoder(encoderConfig),
 			//zapcore.AddSync(&hook), // 编码器配置
 			zapcore.NewMultiWriteSyncer(zapcore.AddSync(&hook)), // 打印到控制台和文件
 			level)
 	}
-
 
 	Logger = zap.New(core, zap.AddCaller())
 
@@ -85,32 +83,32 @@ func InitLogger(cfg  LogConfig)  {
 
 }
 
-func Info(msg string, fields ...zap.Field)  {
+func Info(msg string, fields ...zap.Field) {
 	if Logger != nil {
-		Logger.Info(msg,fields...)
-	}else {
+		Logger.Info(msg, fields...)
+	} else {
 		fmt.Println(msg)
 	}
 }
 
-func Debug(msg string, fields ...zap.Field)  {
+func Debug(msg string, fields ...zap.Field) {
 	if Logger != nil {
-		Logger.Debug(msg,fields...)
-	}else {
+		Logger.Debug(msg, fields...)
+	} else {
 		fmt.Println(msg)
 	}
 }
 
-func Warn(msg string, fields ...zap.Field)  {
+func Warn(msg string, fields ...zap.Field) {
 	if Logger != nil {
-		Logger.Warn(msg,fields...)
-	}else {
+		Logger.Warn(msg, fields...)
+	} else {
 		fmt.Println(msg)
 	}
 }
-func Error(msg string, fields ...zap.Field)  {
+func Error(msg string, fields ...zap.Field) {
 	if Logger != nil {
-		Logger.Error(msg,fields...)
+		Logger.Error(msg, fields...)
 	} else {
 		fmt.Println(msg)
 	}

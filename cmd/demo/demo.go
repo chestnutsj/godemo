@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 )
+
 var (
 	// 初始化为 unknown，如果编译时没有传入这些值，则为 unknown
 	GitCommitLog   = "unknown"
@@ -17,11 +18,10 @@ var (
 	BuildGoVersion = "unknown"
 )
 
-
-func main()  {
+func main() {
 
 	v := flag.Bool("v", false, "show bin info")
-	conf := flag.String("c",filepath.Join("conf" ,tools.AppName()+".yaml"), "show bin info")
+	conf := flag.String("c", filepath.Join("conf", tools.AppName()+".yaml"), "show bin info")
 	flush := flag.Bool("f", false, " auto flush config")
 
 	flag.Parse()
@@ -31,20 +31,19 @@ func main()  {
 		return
 	}
 
-
-	absFile,err:= filepath.Abs(*conf)
-	if err !=nil {
-	 	panic(err)
-	}
-
-	cfg,err := config.InitConfig(absFile, *flush)
+	absFile, err := filepath.Abs(*conf)
 	if err != nil {
-		 panic(err)
+		panic(err)
 	}
- 	logger.InitLogger(cfg.Log)
-	logger.Info("start app "+ tools.AppName())
+
+	cfg, err := config.InitConfig(absFile, *flush)
+	if err != nil {
+		panic(err)
+	}
+	logger.InitLogger(cfg.Log)
+	logger.Info("start app " + tools.AppName())
 	defer logger.Sync()
-	fmt.Println( cfg.String())
+	fmt.Println(cfg.String())
 	cfg.Save()
 
 }

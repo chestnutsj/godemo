@@ -5,14 +5,13 @@ import (
 	"testing"
 )
 
-
 func Test_initLogger(t *testing.T) {
 
-	cfg:=LogConfig{
-		Dir:"log",
-		Level: zapcore.DebugLevel,
+	cfg := LogConfig{
+		Dir:     "log",
+		Level:   zapcore.DebugLevel,
 		MaxFile: 7,
-		MaxAge: 1,
+		MaxAge:  1,
 	}
 
 	InitLogger(cfg)
