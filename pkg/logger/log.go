@@ -14,7 +14,7 @@ import (
 var (
 	stdCancel  func()
 	replaceCancel  func()
-	once sync.Once
+	 
 	once2 sync.Once
 	Logger *zap.Logger
 	level zap.AtomicLevel
@@ -53,12 +53,10 @@ func SetLevel(l string)  {
 func init()  {
 	level = zap.NewAtomicLevel()
 	stdLevel = zap.NewAtomicLevel()
-	once.Do(func() {
-		Logger, _ = zap.NewDevelopment()
-		stdCancel = zap.RedirectStdLog(Logger)
-		replaceCancel = zap.ReplaceGlobals(Logger)
-		Sync()
-	})
+	Logger, _ = zap.NewDevelopment()
+	stdCancel = zap.RedirectStdLog(Logger)
+	replaceCancel = zap.ReplaceGlobals(Logger)
+	Sync() 
 }
 
 func GetExeName() string  {
