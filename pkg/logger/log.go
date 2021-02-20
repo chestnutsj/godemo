@@ -13,11 +13,12 @@ import (
 )
 var (
 	stdCancel  func()
-    replaceCancel  func()
-    once sync.Once
+	replaceCancel  func()
+	once sync.Once
 	once2 sync.Once
-    Logger *zap.Logger
+	Logger *zap.Logger
 	level zap.AtomicLevel
+	stdLevel zap.AtomicLevel
 )
 
 
@@ -28,11 +29,20 @@ type LogConfig struct {
 	MaxFile int    `default:"7"`
 	MaxAge  int    `default:"9"`
 	Compress bool  `default:"true"`
+	Std     bool `default:"true"`
 }
 
 func Sync() {
 	if Logger != nil {
 		_ = Logger.Sync()
+	}
+}
+
+func SetStd(b bool)  {
+	if b {
+		stdLevel.SetLevel(zap.DebugLevel)
+	} else {
+		stdLevel.SetLevel(zap.PanicLevel)
 	}
 }
 
@@ -98,16 +108,16 @@ func InitConfig(cfg LogConfig)  {
 	}
 	SetLevel(cfg.Level)
 
+	SetStd(cfg.Std)
 
 	core:= zapcore.NewTee(
 		zapcore.NewCore(
 			zapcore.NewJSONEncoder(encoderConfig),
 			zapcore.AddSync(&hook),
-			zap.InfoLevel),
+			level),
 		zapcore.NewCore( zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()) ,
 			zapcore.AddSync(os.Stdout),
-			level),
-
+			stdLevel),
 		)
 
 	Logger = zap.New(core,zap.AddCaller())
