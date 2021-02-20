@@ -52,6 +52,7 @@ func SetLevel(l string)  {
 
 func init()  {
 	level = zap.NewAtomicLevel()
+	stdLevel = zap.NewAtomicLevel()
 	once.Do(func() {
 		Logger, _ = zap.NewDevelopment()
 		stdCancel = zap.RedirectStdLog(Logger)
